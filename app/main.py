@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from app.models.base import Base, engine
-from app.models import user, team, task, comment, meeting, evaluation
+from app.api.auth import router as auth_router
 
 
 app = FastAPI(title="MVP")
+
+
+app.include_router(auth_router, prefix="/api")
 
 
 @app.get("/")
