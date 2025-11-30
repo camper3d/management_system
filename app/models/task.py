@@ -21,7 +21,7 @@ class Task(Base):
 
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     assignee_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    creator_id = Column(Integer, ForeignKey(" users.id"), nullable=False)
+    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     team = relationship("Team", back_populates="tasks")
     assignee = relationship("User", foreign_keys=[assignee_id], back_populates="tasks_assigned")
