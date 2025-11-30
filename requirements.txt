@@ -8,6 +8,8 @@ python-dotenv==1.2.1
 SQLAlchemy==2.0.44
 asyncpg==0.31.0
 uvicorn==0.38.0
+jose==1.0.0
+
 
 
 
