@@ -21,7 +21,7 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.MEMBER)
 
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
-    team = relationship("Team", back_populates="members")
+    team = relationship("Team", back_populates="members", foreign_keys=[team_id])
 
     tasks_assigned = relationship("Task", foreign_keys="Task.assignee_id", back_populates="assignee")
     tasks_created = relationship("Task", foreign_keys="Task.creator_id", back_populates="creator")

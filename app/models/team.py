@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+
+from app.models import User
 from app.models.base import Base
 
 
@@ -11,5 +13,5 @@ class Team(Base):
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     admin = relationship("User", foreign_keys=[admin_id])
-    members = relationship("User", back_populates="team")
+    members = relationship("User", back_populates="team", foreign_keys=[User.team_id])
     tasks = relationship("Task", back_populates="team")
