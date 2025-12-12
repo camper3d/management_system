@@ -11,6 +11,7 @@ uvicorn==0.38.0
 jose==1.0.0
 python-jose==3.5.0
 passlib==1.7.4
+sqladmin==0.22.0
 
 
 
