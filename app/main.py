@@ -5,6 +5,7 @@ from app.api.team import router as team_router
 from app.api.task import router as task_router
 from app.api.evaluation import router as eval_router
 from app.api.meeting import router as meeting_router
+from app.api.event_calendar import router as calendar_router
 
 app = FastAPI(title="MVP")
 
@@ -14,6 +15,7 @@ app.include_router(team_router, prefix="/api")
 app.include_router(task_router, prefix="/api")
 app.include_router(eval_router, prefix="/api")
 app.include_router(meeting_router, prefix="/api")
+app.include_router(calendar_router, prefix="/api")
 
 
 @app.get("/")
