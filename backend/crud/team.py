@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.team import Team
-from app.models.user import User, UserRole
-from app.schemas.team import TeamCreate
+from backend.models.team import Team
+from backend.models.user import User, UserRole
+from backend.schemas.team import TeamCreate
 
 
 async def create_team(db: AsyncSession, team_create: TeamCreate, admin_id: int) -> Team:

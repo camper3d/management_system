@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_
-from app.models.task import Task, TaskStatus
-from app.models.comment import Comment
-from app.schemas.task import TaskCreate
+from backend.models.task import Task, TaskStatus
+from backend.models.comment import Comment
+from backend.schemas.task import TaskCreate
 
 
 async def create_task(db: AsyncSession, task_in: TaskCreate, creator_id: int, team_id: int) -> Task:

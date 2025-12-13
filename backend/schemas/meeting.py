@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List
-from app.schemas.user import UserOut
+from backend.schemas.user import UserOut
 
 
 class MeetingCreate(BaseModel):

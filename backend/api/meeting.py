@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_db
-from app.schemas.meeting import MeetingCreate, MeetingOut
-from app.crud.meeting import create_meeting, get_user_meetings, delete_meeting
-from app.api.deps import get_current_user
-from app.models.user import User
+from backend.db.session import get_db
+from backend.schemas.meeting import MeetingCreate, MeetingOut
+from backend.crud.meeting import create_meeting, get_user_meetings, delete_meeting
+from backend.api.deps import get_current_user
+from backend.models.user import User
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 

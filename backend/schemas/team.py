@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List
-from app.schemas.user import UserOut
+from backend.schemas.user import UserOut
 
 
 class TeamCreate(BaseModel):

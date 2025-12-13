@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_db
-from app.schemas.evaluation import EvaluationCreate, EvaluationOut, AverageRatingResponse
-from app.crud.evaluation import create_evaluation, get_user_evaluations, get_average_rating
-from app.api.deps import get_current_user
-from app.models.user import User
+from backend.db.session import get_db
+from backend.schemas.evaluation import EvaluationCreate, EvaluationOut, AverageRatingResponse
+from backend.crud.evaluation import create_evaluation, get_user_evaluations, get_average_rating
+from backend.api.deps import get_current_user
+from backend.models.user import User
 
 router = APIRouter(prefix="/evaluations", tags=["evaluations"])
 

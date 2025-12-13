@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from datetime import date
 from calendar import monthrange
-from app.models.task import Task
-from app.models.meeting import Meeting, meeting_participants
+from backend.models.task import Task
+from backend.models.meeting import Meeting, meeting_participants
 
 
 async def get_events_for_day(db: AsyncSession, user_id: int, target_date: date) -> list:

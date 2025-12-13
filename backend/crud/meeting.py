@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, or_
-from app.models.meeting import Meeting, meeting_participants
-from app.models.user import User
-from app.schemas.meeting import MeetingCreate
+from backend.models.meeting import Meeting, meeting_participants
+from backend.models.user import User
+from backend.schemas.meeting import MeetingCreate
 from datetime import datetime
 
 

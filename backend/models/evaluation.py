@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
-from app.models.base import Base
+from backend.models.base import Base
 
 
 class Evaluation(Base):

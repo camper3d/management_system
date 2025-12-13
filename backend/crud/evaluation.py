@@ -2,10 +2,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, func
 from datetime import datetime, timedelta
-from app.models.evaluation import Evaluation
-from app.models.task import Task, TaskStatus
-from app.models.user import User
-from app.schemas.evaluation import EvaluationCreate
+from backend.models.evaluation import Evaluation
+from backend.models.task import Task, TaskStatus
+from backend.models.user import User
+from backend.schemas.evaluation import EvaluationCreate
 
 
 async def create_evaluation(db: AsyncSession, evaluation_in: EvaluationCreate, evaluator_id: int) -> Evaluation:

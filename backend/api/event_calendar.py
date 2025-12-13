@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, date
-from app.db.session import get_db
-from app.api.deps import get_current_user
-from app.models.user import User
-from app.schemas.event_calendar import DayEventsResponse, MonthEventsResponse
-from app.crud.event_calendar import get_events_for_day, get_events_for_month
+from backend.db.session import get_db
+from backend.api.deps import get_current_user
+from backend.models.user import User
+from backend.schemas.event_calendar import DayEventsResponse, MonthEventsResponse
+from backend.crud.event_calendar import get_events_for_day, get_events_for_month
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 

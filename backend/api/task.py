@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_db
-from app.schemas.task import TaskCreate, TaskUpdate, TaskOut, CommentCreate, CommentOut
-from app.crud.task import create_task, get_task_by_id, get_tasks_for_user,\
+from backend.db.session import get_db
+from backend.schemas.task import TaskCreate, TaskUpdate, TaskOut, CommentCreate, CommentOut
+from backend.crud.task import create_task, get_task_by_id, get_tasks_for_user,\
     update_task, delete_task, create_comment, get_comments_for_task
-from app.api.deps import get_current_user
-from app.models.user import User, UserRole
-from app.models.task import TaskStatus
+from backend.api.deps import get_current_user
+from backend.models.user import User, UserRole
+from backend.models.task import TaskStatus
 
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
