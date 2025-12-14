@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Integer, ForeignKey, CheckConstraint, DateTime, text
 from sqlalchemy.orm import relationship
 from backend.models.base import Base
 
@@ -12,6 +12,8 @@ class Evaluation(Base):
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
     evaluator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     evaluated_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=text('CURRENT_TIMESTAMP'), nullable=False)
 
     task = relationship("Task", back_populates="evaluations")
     evaluator = relationship("User", foreign_keys=[evaluator_id])
