@@ -34,7 +34,7 @@ class MeetingAdmin(ModelView, model=Meeting):
 
 
 class EvaluationAdmin(ModelView, model=Evaluation):
-    column_list = [Evaluation.id, Evaluation.score, Evaluation.task_id, Evaluation.evaluator_id, Evaluation.evaluated_user_id]
+    column_list = [Evaluation.id, Evaluation.score, Evaluation.task_id, Evaluation.evaluator_id, Evaluation.evaluated_user_id, Evaluation.created_at]
 
 
 class CommentAdmin(ModelView, model=Comment):
