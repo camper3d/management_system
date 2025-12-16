@@ -16,6 +16,24 @@ async def get_calendar_day(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Получить события текущего пользователя за конкретный день календаря.
+
+    Args:
+        day (str | None): Дата в формате ISO (YYYY-MM-DD).
+                          Если не указана, используется текущая дата.
+        db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+        current_user (User): Текущий пользователь, полученный из JWT‑токена.
+
+    Returns:
+        DayEventsResponse: Объект с ключами:
+            - date (str): дата в формате ISO.
+            - events (list): список событий (задачи и встречи) за указанный день.
+
+    Raises:
+        HTTPException: Если дата указана в неверном формате.
+    """
+
     if day:
         try:
             target_date = datetime.fromisoformat(day).date()
@@ -38,6 +56,26 @@ async def get_calendar_month(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Получить события текущего пользователя за указанный месяц календаря.
+
+    Args:
+        year (int | None): Год. Если не указан, используется текущий год.
+        month (int | None): Месяц (1–12). Если не указан, используется текущий месяц.
+        db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+        current_user (User): Текущий пользователь, полученный из JWT‑токена.
+
+    Returns:
+        MonthEventsResponse: Объект с ключами:
+            - year (int): целевой год.
+            - month (int): целевой месяц.
+            - days (dict): словарь, где ключ — дата (ISO‑строка),
+                           значение — список событий за этот день.
+
+    Raises:
+        HTTPException: Если месяц указан вне диапазона 1–12.
+    """
+
     now = datetime.now()
     target_year = year or now.year
     target_month = month or now.month

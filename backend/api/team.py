@@ -17,6 +17,22 @@ async def create_new_team(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
+    """
+        Создать новую команду и назначить текущего пользователя её администратором.
+
+        Args:
+            team_in (TeamCreate): Данные для создания команды (название и др.).
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            current_user (User): Текущий пользователь.
+
+        Returns:
+            TeamOut: Объект созданной команды с её участниками.
+
+        Raises:
+            HTTPException:
+                - 400: Если пользователь уже состоит в команде.
+        """
+
     if current_user.team_id is not None:
         raise HTTPException(status_code=400, detail="You are already in a team")
 
@@ -34,6 +50,21 @@ async def get_my_team(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
+    """
+        Получить информацию о команде текущего пользователя.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            current_user (User): Текущий пользователь.
+
+        Returns:
+            TeamOut: Объект команды с её участниками.
+
+        Raises:
+            HTTPException:
+                - 404: Если пользователь не состоит в команде или команда не найдена.
+        """
+
     if current_user.team_id is None:
         raise HTTPException(status_code=404, detail="You are not in a team")
 
@@ -57,6 +88,24 @@ async def add_member_to_team(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
+    """
+        Добавить нового участника в команду.
+
+        Args:
+            team_id (int): Идентификатор команды.
+            member_update (TeamMemberUpdate): Данные участника (user_id).
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            current_user (User): Текущий пользователь.
+
+        Returns:
+            dict: Сообщение об успешном добавлении {"message": "Member added"}.
+
+        Raises:
+            HTTPException:
+                - 403: Если текущий пользователь не является администратором команды.
+                - 404: Если пользователь не найден.
+        """
+
     if current_user.team_id != team_id or current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admin can add members")
 
@@ -74,6 +123,25 @@ async def set_member_role(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
+    """
+        Установить роль участнику команды.
+
+        Args:
+            team_id (int): Идентификатор команды.
+            role_update (TeamMemberUpdate): Данные участника (user_id и новая роль).
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            current_user (User): Текущий пользователь.
+
+        Returns:
+            dict: Сообщение об успешном изменении роли {"message": "..."}.
+
+        Raises:
+            HTTPException:
+                - 403: Если текущий пользователь не является администратором команды.
+                - 400: Если указана недопустимая роль.
+                - 404: Если пользователь не найден или не состоит в команде.
+        """
+
     if current_user.team_id != team_id or current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admin can change roles")
 
@@ -95,6 +163,25 @@ async def remove_member(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
+    """
+        Удалить участника из команды.
+
+        Args:
+            team_id (int): Идентификатор команды.
+            user_id (int): Идентификатор пользователя, которого нужно удалить.
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            current_user (User): Текущий пользователь.
+
+        Returns:
+            dict: Сообщение об успешном удалении {"message": "Member removed"}.
+
+        Raises:
+            HTTPException:
+                - 403: Если текущий пользователь не является администратором команды.
+                - 400: Если администратор пытается удалить сам себя.
+                - 404: Если пользователь не найден или не состоит в команде.
+        """
+
     if current_user.team_id != team_id or current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admin can remove members")
 

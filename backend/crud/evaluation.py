@@ -9,6 +9,27 @@ from backend.schemas.evaluation import EvaluationCreate
 
 
 async def create_evaluation(db: AsyncSession, evaluation_in: EvaluationCreate, evaluator_id: int) -> Evaluation:
+    """
+        Создать новую оценку для задачи.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+            evaluation_in (EvaluationCreate): Входные данные для оценки (task_id, score).
+            evaluator_id (int): Идентификатор пользователя, который выставляет оценку.
+
+        Returns:
+            Evaluation: Созданный объект оценки.
+
+        Raises:
+            ValueError:
+                - "Task not found": если задача не существует.
+                - "Can only evaluate completed tasks": если задача не завершена.
+                - "Evaluator not in the same team": если оценщик не состоит в той же команде.
+                - "Only managers or admins can evaluate": если роль оценщика не admin/manager.
+                - "Cannot evaluate yourself": если оценщик пытается оценить сам себя.
+                - "Task already evaluated": если задача уже была оценена ранее.
+        """
+
     task = await db.get(Task, evaluation_in.task_id)
     if not task:
         raise ValueError("Task not found")
@@ -43,6 +64,18 @@ async def create_evaluation(db: AsyncSession, evaluation_in: EvaluationCreate, e
 
 
 async def get_user_evaluations(db: AsyncSession, user_id: int, team_id: int) -> list[Evaluation]:
+    """
+        Получить все оценки пользователя внутри команды.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            user_id (int): Идентификатор пользователя, для которого ищем оценки.
+            team_id (int): Идентификатор команды.
+
+        Returns:
+            list[Evaluation]: Список оценок, выставленных пользователю за задачи его команды.
+        """
+
     result = await db.execute(
         select(Evaluation)
         .where(
@@ -58,6 +91,21 @@ async def get_user_evaluations(db: AsyncSession, user_id: int, team_id: int) -> 
 
 
 async def get_average_rating(db: AsyncSession, user_id: int, team_id: int, days: int = 30) -> dict:
+    """
+        Рассчитать средний рейтинг пользователя за последние N дней.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            user_id (int): Идентификатор пользователя.
+            team_id (int): Идентификатор команды.
+            days (int, optional): Количество дней для анализа (по умолчанию 30).
+
+        Returns:
+            dict: Словарь с ключами:
+                - "average_score" (float): средний балл.
+                - "total_evaluations" (int): количество оценок за указанный период.
+        """
+
     since = datetime.utcnow() - timedelta(days=days)
     result = await db.execute(
         select(func.avg(Evaluation.score), func.count(Evaluation.id))

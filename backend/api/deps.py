@@ -15,6 +15,21 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ) -> User:
+    """
+    Извлекает текущего пользователя из JWT‑токена и проверяет его наличие в базе данных.
+
+    Args:
+        token (str): JWT‑токен, автоматически получаемый через Depends(oauth2_scheme).
+        db (AsyncSession): Асинхронная сессия SQLAlchemy, предоставляемая через Depends(get_db).
+
+    Returns:
+        User: Объект пользователя, соответствующий user_id из токена.
+
+    Raises:
+        HTTPException: Если токен недействителен, не содержит user_id,
+                       либо пользователь с таким идентификатором отсутствует в базе.
+    """
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

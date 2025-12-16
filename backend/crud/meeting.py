@@ -8,6 +8,20 @@ from datetime import datetime
 
 
 async def user_has_conflict(db: AsyncSession, user_id: int, start: datetime, end: datetime) -> bool:
+    """
+        Проверяет, есть ли у пользователя конфликтующая встреча в заданном интервале времени.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            user_id (int): Идентификатор пользователя.
+            start (datetime): Время начала проверяемого интервала.
+            end (datetime): Время окончания проверяемого интервала.
+
+        Returns:
+            bool: True, если у пользователя есть встреча, пересекающаяся с указанным интервалом,
+                  иначе False.
+        """
+
     query = select(Meeting).join(meeting_participants).where(
         and_(
             meeting_participants.c.user_id == user_id,
@@ -22,6 +36,25 @@ async def user_has_conflict(db: AsyncSession, user_id: int, start: datetime, end
 
 
 async def create_meeting(db: AsyncSession, meeting_in: MeetingCreate, creator_id: int, team_id: int) -> Meeting:
+    """
+        Создать новую встречу для команды.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            meeting_in (MeetingCreate): Входные данные для встречи (название, время, участники).
+            creator_id (int): Идентификатор создателя встречи.
+            team_id (int): Идентификатор команды.
+
+        Returns:
+            Meeting: Созданный объект встречи.
+
+        Raises:
+            ValueError:
+                - Если время окончания <= времени начала.
+                - Если участник не найден или не состоит в команде.
+                - Если у участника есть конфликтующая встреча.
+        """
+
     if meeting_in.start_time >= meeting_in.end_time:
         raise ValueError("End time must be after start time")
 
@@ -56,6 +89,18 @@ async def create_meeting(db: AsyncSession, meeting_in: MeetingCreate, creator_id
 
 
 async def get_user_meetings(db: AsyncSession, user_id: int) -> list[Meeting]:
+    """
+        Получить список всех встреч пользователя.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            user_id (int): Идентификатор пользователя.
+
+        Returns:
+            list[Meeting]: Список встреч, в которых участвует пользователь,
+                           отсортированный по времени начала.
+        """
+
     result = await db.execute(
         select(Meeting)
         .join(meeting_participants)
@@ -66,6 +111,24 @@ async def get_user_meetings(db: AsyncSession, user_id: int) -> list[Meeting]:
 
 
 async def delete_meeting(db: AsyncSession, meeting_id: int, user_id: int, team_id: int) -> bool:
+    """
+        Удалить встречу по её идентификатору.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy.
+            meeting_id (int): Идентификатор встречи.
+            user_id (int): Идентификатор пользователя, инициирующего удаление.
+            team_id (int): Идентификатор команды.
+
+        Returns:
+            bool: True, если встреча успешно удалена, иначе False.
+
+        Notes:
+            Удаление возможно только если:
+            - Пользователь является создателем встречи, или
+            - Пользователь имеет роль "admin" в команде.
+        """
+
     meeting = await db.get(Meeting, meeting_id)
     if not meeting:
         return False

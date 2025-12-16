@@ -25,5 +25,8 @@ def get_message():
 
 @app.on_event("startup")
 async def startup():
+    """
+    Создание таблиц при запуске приложения, если база не создана.
+    """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

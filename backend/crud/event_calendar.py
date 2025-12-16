@@ -8,6 +8,25 @@ from backend.models.meeting import Meeting, meeting_participants
 
 
 async def get_events_for_day(db: AsyncSession, user_id: int, target_date: date) -> list:
+    """
+        Получить список событий (задачи и встречи) для конкретного пользователя за указанный день.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+            user_id (int): Идентификатор пользователя, для которого ищем события.
+            target_date (date): Целевая дата (год-месяц-день).
+
+        Returns:
+            list: Список словарей с событиями. Каждый словарь содержит:
+                - id (int): идентификатор события
+                - title (str): заголовок события ("Задача: ..." или "Встреча: ...")
+                - type (str): тип события ("task" или "meeting")
+                - start (datetime): время начала
+                - end (datetime): время окончания
+                - assignee_id (int, optional): назначенный исполнитель (для задач)
+                - creator_id (int): создатель события
+        """
+
     events = []
 
     task_result = await db.execute(
@@ -55,6 +74,20 @@ async def get_events_for_day(db: AsyncSession, user_id: int, target_date: date) 
 
 
 async def get_events_for_month(db: AsyncSession, user_id: int, year: int, month: int) -> dict[str, list]:
+    """
+        Получить все события пользователя за указанный месяц.
+
+        Args:
+            db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+            user_id (int): Идентификатор пользователя.
+            year (int): Год.
+            month (int): Месяц (1–12).
+
+        Returns:
+            dict[str, list]: Словарь, где ключ — дата в формате ISO (YYYY-MM-DD),
+            а значение — список событий за этот день (см. get_events_for_day).
+        """
+
     _, last_day = monthrange(year, month)
     events_by_day = {}
 
