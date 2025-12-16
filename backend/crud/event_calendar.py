@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from datetime import date
+from sqlalchemy import Date
+from datetime import datetime, time, date
 from calendar import monthrange
 from backend.models.task import Task
 from backend.models.meeting import Meeting, meeting_participants
@@ -13,7 +14,7 @@ async def get_events_for_day(db: AsyncSession, user_id: int, target_date: date) 
         select(Task).where(
             ((Task.assignee_id == user_id) | (Task.creator_id == user_id)) &
             (Task.deadline.isnot(None)) &
-            (Task.deadline.cast(date) == target_date)
+            (Task.deadline.cast(Date) == target_date)
         )
     )
     for task in task_result.scalars():
@@ -27,12 +28,16 @@ async def get_events_for_day(db: AsyncSession, user_id: int, target_date: date) 
             "creator_id": task.creator_id
         })
 
+    start_of_day = datetime.combine(target_date, time.min)
+    end_of_day = datetime.combine(target_date, time.max)
+
     meeting_result = await db.execute(
         select(Meeting)
         .join(meeting_participants)
         .where(
             meeting_participants.c.user_id == user_id,
-            Meeting.start_time.cast(date) == target_date
+            Meeting.start_time >= start_of_day,
+            Meeting.start_time <= end_of_day
         )
     )
     for meeting in meeting_result.scalars():
