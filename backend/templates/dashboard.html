@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+<h2>Tasks ({{ tasks|length }})</h2>
+<ul>
+{% for task in tasks %}
+  <li>{{ task.title }} — {{ task.status }} {% if task.deadline %}(Deadline: {{ task.deadline.strftime('%Y-%m-%d') }}){% endif %}</li>
+{% endfor %}
+</ul>
+
+<h2>Upcoming Meetings ({{ meetings|length }})</h2>
+<ul>
+{% for meeting in meetings %}
+  <li>{{ meeting.title }} — {{ meeting.start_time.strftime('%Y-%m-%d %H:%M') }}</li>
+{% endfor %}
+</ul>
+{% endblock %}
