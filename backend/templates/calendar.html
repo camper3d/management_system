@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Calendar — {{ year }} / {{ month }}</h1>
+
+<!-- Навигация по месяцам -->
+<div style="margin-bottom: 15px;">
+    <a href="/calendar?year={{ year }}&month={{ month - 1 if month > 1 else 12 }}">&lt; Prev</a>
+    |
+    <a href="/calendar?year={{ year }}&month={{ month + 1 if month < 12 else 1 }}">{{ 'Next' if month < 12 else 'Next Year →' }}</a>
+    |
+    <a href="/calendar">Today</a>
+</div>
+
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      {% for wd in weekdays %}
+        <th>{{ wd }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for week in weeks %}
+      <tr>
+        {% for cell in week %}
+          <td style="height: 100px; vertical-align: top; {% if cell.is_today %}background-color: #e6f7ff;{% endif %}">
+            {% if cell.day %}
+              <strong>{{ cell.day }}</strong>
+              <hr style="margin: 4px 0;">
+              {% for event in cell.events %}
+                <div style="font-size: 0.9em; margin-bottom: 3px;">
+                  {% if event.type == "meeting" %}
+                      <strong>{{ event.title }}</strong><br>
+                    {{ event.start.strftime('%H:%M') }}–{{ event.end.strftime('%H:%M') }}
+                  {% else %}
+                      <strong>{{ event.title }}</strong><br>
+                    Deadline
+                  {% endif %}
+                </div>
+              {% endfor %}
+            {% endif %}
+          </td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<style>
+  table { font-family: Arial, sans-serif; }
+  td { padding: 4px; }
+</style>
+{% endblock %}
