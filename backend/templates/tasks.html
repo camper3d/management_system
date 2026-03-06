@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>My Tasks</h1>
+{% if tasks %}
+  <ul>
+  {% for task in tasks %}
+    <li>{{ task.title }} — {{ task.status }}</li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No tasks assigned.</p>
+{% endif %}
+{% endblock %}
