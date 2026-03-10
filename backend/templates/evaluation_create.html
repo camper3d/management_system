@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Evaluate Task: "{{ task.title }}"</h1>
+<form method="post">
+  <label>Score:<br>
+    <select name="score" style="padding: 6px; width: 200px;">
+      <option value="1">1 — Poor</option>
+      <option value="2">2 — Fair</option>
+      <option value="3">3 — Good</option>
+      <option value="4">4 — Very Good</option>
+      <option value="5" selected>5 — Excellent</option>
+    </select>
+  </label><br><br>
+
+  <button type="submit" style="padding: 8px 16px;">Submit Evaluation</button>
+  <a href="/tasks" style="margin-left: 10px;">Cancel</a>
+</form>
+{% endblock %}
