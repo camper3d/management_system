@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create New Task</h1>
+<form method="post">
+  <label>Title:<br>
+    <input type="text" name="title" required style="width: 100%; padding: 6px;">
+  </label><br><br>
+
+  <label>Description:<br>
+    <textarea name="description" style="width: 100%; height: 80px; padding: 6px;"></textarea>
+  </label><br><br>
+
+  <label>Deadline:<br>
+    <input type="datetime-local" name="deadline" style="padding: 6px;">
+  </label><br><br>
+
+  <label>Assign to:<br>
+    <select name="assignee_id" required style="width: 100%; padding: 6px;">
+      {% for member in team_members %}
+        <option value="{{ member.id }}">{{ member.full_name or member.email }}</option>
+      {% endfor %}
+    </select>
+  </label><br><br>
+
+  <button type="submit" style="padding: 8px 16px;">Create Task</button>
+  <a href="/tasks" style="margin-left: 10px;">Cancel</a>
+</form>
+{% endblock %}
