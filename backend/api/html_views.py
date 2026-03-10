@@ -1,13 +1,21 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from backend.crud.user import delete_user
 from backend.db.session import get_db
-from backend.crud.task import get_tasks_for_user
-from backend.crud.meeting import get_user_meetings
+from backend.crud.task import get_tasks_for_user, create_task, get_task_by_id, update_task
+from backend.crud.meeting import get_user_meetings, create_meeting
 from backend.models.user import User
 from backend.crud.event_calendar import get_events_for_month
-from datetime import date
+from datetime import date, datetime
 from calendar import monthrange
+from typing import List
+from backend.crud.team import get_team_members
+from backend.crud.evaluation import create_evaluation
+from backend.schemas.task import TaskCreate
+from backend.schemas.meeting import MeetingCreate
+from backend.schemas.evaluation import EvaluationCreate
+
 
 html_router = APIRouter()
 
@@ -168,6 +176,64 @@ async def tasks_view(request: Request, db: AsyncSession = Depends(get_db)):
     })
 
 
+@html_router.get("/tasks/create", response_class=HTMLResponse)
+async def create_task_form(request: Request, db: AsyncSession = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    user = request.state.user
+    team_members = []
+    if user.team_id:
+        team_members = await get_team_members(db, user.team_id)
+    return request.app.state.templates.TemplateResponse("task_create.html", {
+        "request": request, "team_members": team_members, "user": user
+    })
+
+
+@html_router.post("/tasks/create")
+async def handle_create_task(
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(None),
+    deadline: str = Form(None),
+    assignee_id: int = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    user = request.state.user
+    if user.role not in ("admin", "manager"):
+        return RedirectResponse(url="/tasks?error=Only+managers+can+create+tasks", status_code=303)
+
+    try:
+        deadline_dt = datetime.fromisoformat(deadline.replace("Z", "+00:00")) if deadline else None
+        task_in = TaskCreate(title=title, description=description, deadline=deadline_dt, assignee_id=assignee_id)
+        await create_task(db, task_in, user.id, user.team_id)
+        return RedirectResponse(url="/tasks?success=Task+created", status_code=303)
+    except Exception as e:
+        return RedirectResponse(url=f"/tasks/create?error={str(e)[:100]}", status_code=303)
+
+
+@html_router.post("/tasks/{task_id}/update-status")
+async def update_task_status(
+    request: Request,
+    task_id: int,
+    status: str = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    user = request.state.user
+    task = await get_task_by_id(db, task_id)
+    if not task or task.team_id != user.team_id:
+        return RedirectResponse(url="/tasks?error=Task+not+found", status_code=303)
+
+    if status in ("in_progress", "done") and task.assignee_id != user.id:
+        return RedirectResponse(url="/tasks?error=Only+assignee+can+update+status", status_code=303)
+
+    await update_task(db, task, {"status": status})
+    return RedirectResponse(url="/tasks?success=Status+updated", status_code=303)
+
+
 @html_router.get("/meetings", response_class=HTMLResponse)
 async def meetings_view(request: Request, db: AsyncSession = Depends(get_db)):
     """
@@ -197,3 +263,77 @@ async def meetings_view(request: Request, db: AsyncSession = Depends(get_db)):
         "user": user,
         "meetings": meetings
     })
+
+
+@html_router.get("/meetings/create", response_class=HTMLResponse)
+async def create_meeting_form(request: Request, db: AsyncSession = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    user = request.state.user
+    team_members = []
+    if user.team_id:
+        team_members = await get_team_members(db, user.team_id)
+    return request.app.state.templates.TemplateResponse("meeting_create.html", {
+        "request": request, "team_members": team_members, "user": user
+    })
+
+
+@html_router.post("/meetings/create")
+async def handle_create_meeting(
+    request: Request,
+    title: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
+    participant_ids: List[str] = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    user = request.state.user
+
+    try:
+        start = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        end = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+        meeting_in = MeetingCreate(
+            title=title,
+            start_time=start,
+            end_time=end,
+            participant_ids=[int(x) for x in participant_ids]
+        )
+        await create_meeting(db, meeting_in, user.id, user.team_id)
+        return RedirectResponse(url="/meetings?success=Meeting+created", status_code=303)
+    except Exception as e:
+        return RedirectResponse(url=f"/meetings/create?error={str(e)[:100]}", status_code=303)
+
+
+@html_router.get("/evaluations/create/{task_id}", response_class=HTMLResponse)
+async def evaluation_form(request: Request, task_id: int, db: AsyncSession = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    task = await get_task_by_id(db, task_id)
+    if not task or task.status != "done":
+        return RedirectResponse(url="/tasks?error=Only+completed+tasks+can+be+evaluated", status_code=303)
+    return request.app.state.templates.TemplateResponse("evaluation_create.html", {
+        "request": request, "task": task
+    })
+
+
+@html_router.post("/evaluations/create/{task_id}")
+async def handle_evaluation(
+    request: Request,
+    task_id: int,
+    score: int = Form(...),
+    db: AsyncSession = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    try:
+        eval_in = EvaluationCreate(task_id=task_id, score=score)
+        await create_evaluation(db, eval_in, request.state.user.id)
+        return RedirectResponse(url="/tasks?success=Evaluation+submitted", status_code=303)
+    except Exception as e:
+        return RedirectResponse(url=f"/evaluations/create/{task_id}?error={str(e)[:100]}", status_code=303)
+
+
+
+
