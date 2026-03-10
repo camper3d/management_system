@@ -1,17 +1,95 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h1>Dashboard</h1>
-<h2>Tasks ({{ tasks|length }})</h2>
-<ul>
-{% for task in tasks %}
-  <li>{{ task.title }} — {{ task.status }} {% if task.deadline %}(Deadline: {{ task.deadline.strftime('%Y-%m-%d') }}){% endif %}</li>
-{% endfor %}
-</ul>
 
+<!-- Отображение invite code для админа -->
+{% if user.team_id and team and user.role == "admin" %}
+  <div style="margin: 20px 0; padding: 12px; background-color: #e9f7ef; border-left: 4px solid #28a745; border-radius: 4px;">
+    <strong>Your Team Invite Code:</strong>
+    <code id="invite-code" style="background: #fff; padding: 4px 8px; border-radius: 3px; font-family: monospace;">{{ team.invite_code }}</code>
+    <button onclick="copyInviteCode()" style="margin-left: 10px; padding: 4px 8px; font-size: 0.9em;">Copy</button>
+    <p style="margin-top: 6px; font-size: 0.9em; color: #555;">
+      Share this code with teammates so they can join your team.
+    </p>
+  </div>
+
+  <script>
+    function copyInviteCode() {
+      const code = document.getElementById('invite-code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Invite code copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Invite code copied!');
+      });
+    }
+  </script>
+{% endif %}
+
+<!-- Задачи -->
+<h2>My Tasks ({{ tasks|length }})</h2>
+{% if tasks %}
+  {% for task in tasks %}
+    <div style="border: 1px solid #ddd; padding: 12px; margin: 12px 0; border-radius: 6px; background: #fafafa;">
+      <h3>{{ task.title }}</h3>
+      <p><strong>Status:</strong> {{ task.status }}</p>
+      {% if task.deadline %}
+        <p><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d %H:%M') }}</p>
+      {% endif %}
+
+      <!-- Кнопки управления статусом -->
+      {% if task.status == "open" and task.assignee_id == user.id %}
+        <form class="inline" method="post" action="/tasks/{{ task.id }}/update-status" style="display: inline;">
+          <input type="hidden" name="status" value="in_progress">
+          <button type="submit" style="padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 3px;">Start Work</button>
+        </form>
+      {% elif task.status == "in_progress" and task.assignee_id == user.id %}
+        <form class="inline" method="post" action="/tasks/{{ task.id }}/update-status" style="display: inline;">
+          <input type="hidden" name="status" value="done">
+          <button type="submit" style="padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px;">Mark as Done</button>
+        </form>
+      {% endif %}
+
+      <!-- Оценка (только для менеджеров/админов, не для исполнителя) -->
+      {% if task.status == "done" and user.role in ("admin", "manager") and user.id != task.assignee_id %}
+        <a href="/evaluations/create/{{ task.id }}" style="margin-left: 10px; padding: 5px 10px; background: #ffc107; text-decoration: none; border-radius: 3px;">Evaluate</a>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% else %}
+  <p>No tasks assigned to you.</p>
+{% endif %}
+
+<!-- Встречи -->
 <h2>Upcoming Meetings ({{ meetings|length }})</h2>
-<ul>
-{% for meeting in meetings %}
-  <li>{{ meeting.title }} — {{ meeting.start_time.strftime('%Y-%m-%d %H:%M') }}</li>
-{% endfor %}
-</ul>
+{% if meetings %}
+  <ul style="list-style: none; padding: 0;">
+  {% for meeting in meetings %}
+    <li style="border-bottom: 1px solid #eee; padding: 10px 0;">
+      <strong>{{ meeting.title }}</strong><br>
+      {{ meeting.start_time.strftime('%Y-%m-%d %H:%M') }} – {{ meeting.end_time.strftime('%H:%M') }}
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No upcoming meetings.</p>
+{% endif %}
+
+<!-- Ссылка на присоединение к команде (если не в команде) -->
+{% if not user.team_id %}
+  <div style="margin-top: 30px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;">
+    <h3>Not in a team yet?</h3>
+    <p>You can create your own team or join an existing one using an invite code.</p>
+    <a href="/join" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: #fd7e14; color: white; text-decoration: none; border-radius: 4px;">Join a Team</a>
+  </div>
+{% endif %}
+
 {% endblock %}
