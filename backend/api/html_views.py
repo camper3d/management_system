@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.crud.user import delete_user
+from backend.crud.user import delete_user, update_user_profile
 from backend.db.session import get_db
 from backend.crud.task import get_tasks_for_user, create_task, get_task_by_id, update_task
 from backend.crud.meeting import get_user_meetings, create_meeting
@@ -333,6 +333,37 @@ async def handle_evaluation(
         return RedirectResponse(url="/tasks?success=Evaluation+submitted", status_code=303)
     except Exception as e:
         return RedirectResponse(url=f"/evaluations/create/{task_id}?error={str(e)[:100]}", status_code=303)
+
+
+@html_router.get("/profile/edit", response_class=HTMLResponse)
+async def edit_profile_form(request: Request):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    return request.app.state.templates.TemplateResponse("profile_edit.html", {
+        "request": request,
+        "user": request.state.user
+    })
+
+
+@html_router.post("/profile/edit")
+async def handle_edit_profile(
+        request: Request,
+        full_name: str = Form(None),
+        email: str = Form(None),
+        db: AsyncSession = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+
+    try:
+        updated = await update_user_profile(db, request.state.user.id, full_name, email)
+        if updated:
+
+            return RedirectResponse(url="/profile/edit?success=Profile+updated", status_code=303)
+        else:
+            return RedirectResponse(url="/profile/edit?error=User+not+found", status_code=303)
+    except ValueError as e:
+        return RedirectResponse(url=f"/profile/edit?error={str(e)}", status_code=303)
 
 
 @html_router.get("/profile/delete", response_class=HTMLResponse)
