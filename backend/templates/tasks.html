@@ -1,13 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>My Tasks</h1>
+<a href="/tasks/create">+ Create New Task</a>
+
 {% if tasks %}
-  <ul>
   {% for task in tasks %}
-    <li>{{ task.title }} — {{ task.status }}</li>
+    <div style="border: 1px solid #ccc; padding: 12px; margin: 12px 0; border-radius: 4px;">
+      <h3>{{ task.title }}</h3>
+      <p><strong>Status:</strong> {{ task.status }}</p>
+      <p><strong>Deadline:</strong> {{ task.deadline.strftime('%Y-%m-%d %H:%M') if task.deadline else 'No deadline' }}</p>
+
+      {% if task.status == "open" and task.assignee_id == user.id %}
+        <form class="inline" method="post" action="/tasks/{{ task.id }}/update-status">
+          <input type="hidden" name="status" value="in_progress">
+          <button type="submit">Start Work</button>
+        </form>
+      {% elif task.status == "in_progress" and task.assignee_id == user.id %}
+        <form class="inline" method="post" action="/tasks/{{ task.id }}/update-status">
+          <input type="hidden" name="status" value="done">
+          <button type="submit">Mark as Done</button>
+        </form>
+      {% endif %}
+
+      {% if task.status == "done" and user.role in ("admin", "manager") and user.id != task.assignee_id %}
+        <a href="/evaluations/create/{{ task.id }}">Evaluate</a>
+      {% endif %}
+    </div>
   {% endfor %}
-  </ul>
 {% else %}
-  <p>No tasks assigned.</p>
+  <p>No tasks assigned to you.</p>
 {% endif %}
 {% endblock %}
