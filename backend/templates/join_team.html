@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Join a Team</h1>
+<p>Enter the invite code provided by your team admin:</p>
+<form method="post">
+  <label>Invite Code:<br>
+    <input type="text" name="invite_code" required style="width: 100%; padding: 6px; text-transform: uppercase;">
+  </label><br><br>
+  <button type="submit">Join Team</button>
+  <a href="/dashboard" style="margin-left: 10px;">Cancel</a>
+</form>
+{% endblock %}
