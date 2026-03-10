@@ -10,7 +10,7 @@ from backend.crud.event_calendar import get_events_for_month
 from datetime import date, datetime
 from calendar import monthrange
 from typing import List
-from backend.crud.team import get_team_members
+from backend.crud.team import get_team_members, join_team_by_code, get_team_by_id
 from backend.crud.evaluation import create_evaluation
 from backend.schemas.task import TaskCreate
 from backend.schemas.meeting import MeetingCreate
@@ -48,19 +48,22 @@ async def dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     if not request.state.user:
         return RedirectResponse(url="/login")
 
-    user: User = request.state.user
+    user = request.state.user
     tasks = []
     meetings = []
+    team = None
 
     if user.team_id is not None:
         tasks = await get_tasks_for_user(db, user.id, user.team_id)
         meetings = await get_user_meetings(db, user.id)
+        team = await get_team_by_id(db, user.team_id)
 
     return request.app.state.templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
         "tasks": tasks,
-        "meetings": meetings
+        "meetings": meetings,
+        'team': team
     })
 
 
@@ -234,6 +237,31 @@ async def update_task_status(
     return RedirectResponse(url="/tasks?success=Status+updated", status_code=303)
 
 
+@html_router.get("/join", response_class=HTMLResponse)
+async def join_team_form(request: Request):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    if request.state.user.team_id:
+        return RedirectResponse(url="/dashboard?error=Already+in+a+team")
+    return request.app.state.templates.TemplateResponse("join_team.html", {"request": request})
+
+
+@html_router.post("/join")
+async def handle_join_team(
+        request: Request,
+        invite_code: str = Form(...),
+        db: AsyncSession = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+
+    success = await join_team_by_code(db, request.state.user.id, invite_code.strip())
+    if success:
+        return RedirectResponse(url="/dashboard?success=Joined+team", status_code=303)
+    else:
+        return RedirectResponse(url="/join?error=Invalid+or+expired+code", status_code=303)
+
+
 @html_router.get("/meetings", response_class=HTMLResponse)
 async def meetings_view(request: Request, db: AsyncSession = Depends(get_db)):
     """
@@ -358,7 +386,6 @@ async def handle_edit_profile(
     try:
         updated = await update_user_profile(db, request.state.user.id, full_name, email)
         if updated:
-
             return RedirectResponse(url="/profile/edit?success=Profile+updated", status_code=303)
         else:
             return RedirectResponse(url="/profile/edit?error=User+not+found", status_code=303)
