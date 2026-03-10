@@ -49,6 +49,31 @@ async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
     return db_user
 
 
+async def update_user_profile(
+        db: AsyncSession,
+        user_id: int,
+        full_name: str | None = None,
+        email: str | None = None
+) -> User | None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        return None
+
+    if email:
+        existing = await db.execute(select(User).where(User.email == email, User.id != user_id))
+        if existing.scalars().first():
+            raise ValueError("Email already in use")
+        user.email = email
+
+    if full_name is not None:
+        user.full_name = full_name
+
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
 async def delete_user(db: AsyncSession, user_id: int) -> bool:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
@@ -57,3 +82,5 @@ async def delete_user(db: AsyncSession, user_id: int) -> bool:
     await db.delete(user)
     await db.commit()
     return True
+
+
