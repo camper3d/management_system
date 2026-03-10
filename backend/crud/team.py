@@ -131,3 +131,19 @@ async def get_team_members(db: AsyncSession, team_id: int) -> list[User]:
 
     result = await db.execute(select(User).where(User.team_id == team_id))
     return result.scalars().all()
+
+
+async def join_team_by_code(db: AsyncSession, user_id: int, invite_code: str) -> bool:
+    user = await db.get(User, user_id)
+    if not user or user.team_id is not None:
+        return False
+
+    result = await db.execute(select(Team).where(Team.invite_code == invite_code))
+    team = result.scalars().first()
+    if not team:
+        return False
+
+    user.team_id = team.id
+    user.role = UserRole.MEMBER
+    await db.commit()
+    return True
