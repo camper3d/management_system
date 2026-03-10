@@ -8,7 +8,9 @@ DATABASE_URL = settings.DATABASE_URL
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 sync_engine = create_engine(
-    settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite").replace("postgresql+asyncpg", "postgresql"),
+    settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite").replace(
+        "postgresql+asyncpg", "postgresql"
+    ),
     echo=False,
 )
 

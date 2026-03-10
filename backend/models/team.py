@@ -10,7 +10,9 @@ class Team(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
-    invite_code = Column(String, unique=True, nullable=False, default=lambda: secrets.token_urlsafe(8))
+    invite_code = Column(
+        String, unique=True, nullable=False, default=lambda: secrets.token_urlsafe(8)
+    )
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     admin = relationship("User", foreign_keys=[admin_id])

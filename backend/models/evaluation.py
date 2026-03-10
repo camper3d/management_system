@@ -13,12 +13,16 @@ class Evaluation(Base):
     evaluator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     evaluated_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=text('CURRENT_TIMESTAMP'), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
 
     task = relationship("Task", back_populates="evaluations")
     evaluator = relationship("User", foreign_keys=[evaluator_id])
     evaluated_user = relationship("User", foreign_keys=[evaluated_user_id])
 
     __table_args__ = (
-        CheckConstraint('score >= 1 AND score <= 5', name='check_score_range'),
+        CheckConstraint("score >= 1 AND score <= 5", name="check_score_range"),
     )

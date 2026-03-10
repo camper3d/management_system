@@ -21,4 +21,4 @@ class DayEventsResponse(BaseModel):
 class MonthEventsResponse(BaseModel):
     year: int
     month: int
-    days: dict[str, list[CalendarEvent]]  
+    days: dict[str, list[CalendarEvent]]

@@ -11,9 +11,9 @@ router = APIRouter(prefix="/meetings", tags=["meetings"])
 
 @router.post("/", response_model=MeetingOut, status_code=status.HTTP_201_CREATED)
 async def create_new_meeting(
-        meeting_in: MeetingCreate,
-        db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_user)
+    meeting_in: MeetingCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Создать новую встречу в команде.
@@ -38,7 +38,9 @@ async def create_new_meeting(
         meeting_in.participant_ids.append(current_user.id)
 
     try:
-        meeting = await create_meeting(db, meeting_in, current_user.id, current_user.team_id)
+        meeting = await create_meeting(
+            db, meeting_in, current_user.id, current_user.team_id
+        )
         await db.refresh(meeting, ["creator", "participants"])
         return meeting
     except ValueError as e:
@@ -47,8 +49,7 @@ async def create_new_meeting(
 
 @router.get("/", response_model=list[MeetingOut])
 async def list_my_meetings(
-        db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     """
     Получить список всех встреч текущего пользователя.
@@ -69,9 +70,9 @@ async def list_my_meetings(
 
 @router.delete("/{meeting_id}")
 async def cancel_meeting(
-        meeting_id: int,
-        db: AsyncSession = Depends(get_db),
-        current_user: User = Depends(get_current_user)
+    meeting_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Отменить встречу по её идентификатору.
@@ -93,8 +94,12 @@ async def cancel_meeting(
     if current_user.team_id is None:
         raise HTTPException(status_code=400, detail="You must be in a team")
 
-    success = await delete_meeting(db, meeting_id, current_user.id, current_user.team_id)
+    success = await delete_meeting(
+        db, meeting_id, current_user.id, current_user.team_id
+    )
     if not success:
-        raise HTTPException(status_code=404, detail="Meeting not found or access denied")
+        raise HTTPException(
+            status_code=404, detail="Meeting not found or access denied"
+        )
 
     return {"message": "Meeting cancelled"}

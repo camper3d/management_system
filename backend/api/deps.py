@@ -12,8 +12,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ) -> User:
     """
     Извлекает текущего пользователя из JWT‑токена и проверяет его наличие в базе данных.
@@ -36,7 +35,9 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         user_id: int = payload.get("user_id")
         if user_id is None:
             raise credentials_exception

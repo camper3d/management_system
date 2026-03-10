@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from backend.models.base import Base
 from sqlalchemy import Table
 
-
 meeting_participants = Table(
     "meeting_participants",
     Base.metadata,
@@ -23,4 +22,6 @@ class Meeting(Base):
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     creator = relationship("User", foreign_keys=[creator_id])
 
-    participants = relationship("User", secondary=meeting_participants, back_populates="meetings")
+    participants = relationship(
+        "User", secondary=meeting_participants, back_populates="meetings"
+    )

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/calendar", tags=["calendar"])
 async def get_calendar_day(
     day: str | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Получить события текущего пользователя за конкретный день календаря.
@@ -38,15 +38,14 @@ async def get_calendar_day(
         try:
             target_date = datetime.fromisoformat(day).date()
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+            raise HTTPException(
+                status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+            )
     else:
         target_date = date.today()
 
     events = await get_events_for_day(db, current_user.id, target_date)
-    return {
-        "date": target_date.isoformat(),
-        "events": events
-    }
+    return {"date": target_date.isoformat(), "events": events}
 
 
 @router.get("/month", response_model=MonthEventsResponse)
@@ -54,7 +53,7 @@ async def get_calendar_month(
     year: int | None = None,
     month: int | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Получить события текущего пользователя за указанный месяц календаря.
@@ -83,9 +82,7 @@ async def get_calendar_month(
     if not (1 <= target_month <= 12):
         raise HTTPException(status_code=400, detail="Month must be 1-12")
 
-    events_by_day = await get_events_for_month(db, current_user.id, target_year, target_month)
-    return {
-        "year": target_year,
-        "month": target_month,
-        "days": events_by_day
-    }
+    events_by_day = await get_events_for_month(
+        db, current_user.id, target_year, target_month
+    )
+    return {"year": target_year, "month": target_month, "days": events_by_day}

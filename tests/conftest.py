@@ -13,7 +13,6 @@ from backend.core.config_test import test_settings
 from backend.db.session import get_db
 import uuid
 
-
 test_engine = create_async_engine(
     test_settings.DATABASE_URL,
     connect_args={"check_same_thread": False},
@@ -65,19 +64,20 @@ def create_user(db_session):
     """Фикстура для создания тестовых пользователей"""
 
     def _create_user(
-            email: str = None,
-            password: str = 'password123',
-            full_name: str = None,
-            role: str = "member"
+        email: str = None,
+        password: str = "password123",
+        full_name: str = None,
+        role: str = "member",
     ):
         if email is None:
-            email = f'test_{uuid.uuid4().hex}@example.com'
+            email = f"test_{uuid.uuid4().hex}@example.com"
         return User(
             email=email,
             hashed_password=get_password_hash(password),
             full_name=full_name,
-            role=role
+            role=role,
         )
+
     return _create_user
 
 
@@ -89,10 +89,10 @@ async def auth_headers(client, create_user, db_session):
     db_session.add(user)
     await db_session.commit()
 
-    response = await client.post("/api/auth/login", data={
-        "username": "test@example.com",
-        "password": "password123"
-    })
+    response = await client.post(
+        "/api/auth/login",
+        data={"username": "test@example.com", "password": "password123"},
+    )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 

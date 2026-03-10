@@ -24,8 +24,18 @@ class Task(Base):
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     team = relationship("Team", back_populates="tasks", lazy="selectin")
-    assignee = relationship("User", foreign_keys=[assignee_id], back_populates="tasks_assigned", lazy="selectin")
-    creator = relationship("User", foreign_keys=[creator_id], back_populates="tasks_created", lazy="selectin")
+    assignee = relationship(
+        "User",
+        foreign_keys=[assignee_id],
+        back_populates="tasks_assigned",
+        lazy="selectin",
+    )
+    creator = relationship(
+        "User",
+        foreign_keys=[creator_id],
+        back_populates="tasks_created",
+        lazy="selectin",
+    )
 
     comments = relationship("Comment", back_populates="task", lazy="selectin")
     evaluations = relationship("Evaluation", back_populates="task", lazy="selectin")

@@ -8,32 +8,30 @@ import jwt
 async def test_manager_can_create_task(auth_headers, client: AsyncClient):
     """Тест возможности менеджера создавать задачи для членов команды:
 
-        1. Менеджер создаёт команду
-        2. Регистрируется второй пользователь (рабочий)
-        3. Менеджер добавляет рабочего в команду
-        4. Менеджер создаёт задачу для рабочего
-        5. Проверяется корректность всех полей созданной задачи
-"""
+    1. Менеджер создаёт команду
+    2. Регистрируется второй пользователь (рабочий)
+    3. Менеджер добавляет рабочего в команду
+    4. Менеджер создаёт задачу для рабочего
+    5. Проверяется корректность всех полей созданной задачи
+    """
 
-    response = await client.post("/api/teams/", json={"name": "DevTeam"}, headers=auth_headers)
+    response = await client.post(
+        "/api/teams/", json={"name": "DevTeam"}, headers=auth_headers
+    )
     assert response.status_code == 200
     team = response.json()
     team_id = team["id"]
 
-    register_response = await client.post("/api/auth/register", json={
-        "email": "worker@example.com",
-        "password": "123"
-    })
+    register_response = await client.post(
+        "/api/auth/register", json={"email": "worker@example.com", "password": "123"}
+    )
     assert register_response.status_code in (200, 201)
 
-    login_data = {
-        "username": "worker@example.com",
-        "password": "123"
-    }
+    login_data = {"username": "worker@example.com", "password": "123"}
     login_response = await client.post(
         "/api/auth/login",
         data=login_data,
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     assert login_response.status_code == 200
     worker_token = login_response.json()["access_token"]
@@ -43,21 +41,22 @@ async def test_manager_can_create_task(auth_headers, client: AsyncClient):
 
     add_member_response = await client.post(
         f"/api/teams/{team_id}/add-member",
-        json={
-            "user_id": worker_id,
-            "role": "member"
-        },
-        headers=auth_headers
+        json={"user_id": worker_id, "role": "member"},
+        headers=auth_headers,
     )
 
     assert add_member_response.status_code == 200
     assert add_member_response.json()["message"] == "Member added"
 
-    task_response = await client.post("/api/tasks/", json={
-        "title": "Fix bug",
-        "description": "Bug in login flow",
-        "assignee_id": worker_id
-    }, headers=auth_headers)
+    task_response = await client.post(
+        "/api/tasks/",
+        json={
+            "title": "Fix bug",
+            "description": "Bug in login flow",
+            "assignee_id": worker_id,
+        },
+        headers=auth_headers,
+    )
 
     assert task_response.status_code == 200
     task_data = task_response.json()

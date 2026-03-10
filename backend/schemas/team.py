@@ -9,7 +9,7 @@ class TeamCreate(BaseModel):
 
 class TeamMemberUpdate(BaseModel):
     user_id: int
-    role: str  
+    role: str
 
 
 class TeamOut(BaseModel):

@@ -18,6 +18,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     Если токен отсутствует, невалиден или пользователь не найден,
     request.state.user устанавливается в None (анонимный пользователь).
     """
+
     async def dispatch(self, request: Request, call_next):
         """
         Args:
@@ -36,11 +37,15 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         if token:
             try:
-                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+                payload = jwt.decode(
+                    token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+                )
                 user_id: int = payload.get("user_id")
                 if user_id:
                     async with AsyncSessionLocal() as session:
-                        result = await session.execute(select(User).where(User.id == user_id))
+                        result = await session.execute(
+                            select(User).where(User.id == user_id)
+                        )
                         user = result.scalars().first()
                         if user:
                             request.state.user = user

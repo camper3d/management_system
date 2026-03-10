@@ -7,15 +7,15 @@ from backend.schemas.auth import UserCreate
 
 async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     """
-        Найти пользователя по его email.
+    Найти пользователя по его email.
 
-        Args:
-            db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
-            email (str): Email пользователя.
+    Args:
+        db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+        email (str): Email пользователя.
 
-        Returns:
-            User | None: Объект пользователя, если найден, иначе None.
-        """
+    Returns:
+        User | None: Объект пользователя, если найден, иначе None.
+    """
 
     result = await db.execute(select(User).where(User.email == email))
     return result.scalars().first()
@@ -23,25 +23,25 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
 
 async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
     """
-        Создать нового пользователя.
+    Создать нового пользователя.
 
-        Args:
-            db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
-            user_create (UserCreate): Входные данные для создания пользователя (email, пароль, полное имя).
+    Args:
+        db (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+        user_create (UserCreate): Входные данные для создания пользователя (email, пароль, полное имя).
 
-        Returns:
-            User: Созданный объект пользователя.
+    Returns:
+        User: Созданный объект пользователя.
 
-        Notes:
-            - Пароль автоматически хэшируется перед сохранением.
-            - Новому пользователю назначается роль "member" по умолчанию.
-        """
+    Notes:
+        - Пароль автоматически хэшируется перед сохранением.
+        - Новому пользователю назначается роль "member" по умолчанию.
+    """
 
     db_user = User(
         email=user_create.email,
         hashed_password=get_password_hash(user_create.password),
         full_name=user_create.full_name,
-        role="member"
+        role="member",
     )
     db.add(db_user)
     await db.commit()
@@ -50,10 +50,10 @@ async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
 
 
 async def update_user_profile(
-        db: AsyncSession,
-        user_id: int,
-        full_name: str | None = None,
-        email: str | None = None
+    db: AsyncSession,
+    user_id: int,
+    full_name: str | None = None,
+    email: str | None = None,
 ) -> User | None:
     """
     Обновляет профиль пользователя.
@@ -82,7 +82,9 @@ async def update_user_profile(
         return None
 
     if email:
-        existing = await db.execute(select(User).where(User.email == email, User.id != user_id))
+        existing = await db.execute(
+            select(User).where(User.email == email, User.id != user_id)
+        )
         if existing.scalars().first():
             raise ValueError("Email already in use")
         user.email = email
@@ -97,19 +99,19 @@ async def update_user_profile(
 
 async def delete_user(db: AsyncSession, user_id: int) -> bool:
     """
-       Удаляет пользователя из базы данных.
+    Удаляет пользователя из базы данных.
 
-       Args:
-           db (AsyncSession): Асинхронная сессия базы данных
-           user_id (int): ID пользователя для удаления
+    Args:
+        db (AsyncSession): Асинхронная сессия базы данных
+        user_id (int): ID пользователя для удаления
 
-       Returns:
-           bool: True если пользователь успешно удален, False если пользователь не найден
+    Returns:
+        bool: True если пользователь успешно удален, False если пользователь не найден
 
-       Notes:
-           - При успешном удалении изменения автоматически сохраняются (commit)
-           - Функция не проверяет наличие связанных записей (задач, встреч и т.д.)
-           - Рекомендуется использовать каскадное удаление на уровне БД или предварительно очищать связи
+    Notes:
+        - При успешном удалении изменения автоматически сохраняются (commit)
+        - Функция не проверяет наличие связанных записей (задач, встреч и т.д.)
+        - Рекомендуется использовать каскадное удаление на уровне БД или предварительно очищать связи
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
@@ -118,5 +120,3 @@ async def delete_user(db: AsyncSession, user_id: int) -> bool:
     await db.delete(user)
     await db.commit()
     return True
-
-

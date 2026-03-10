@@ -6,7 +6,7 @@ class UserOut(BaseModel):
     id: int
     email: str
     full_name: Optional[str] = None
-    role: str  
+    role: str
 
     class Config:
         from_attributes = True

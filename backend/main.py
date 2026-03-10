@@ -8,7 +8,6 @@ from backend.middleware.auth_middleware import AuthMiddleware
 from backend.api.html_views import html_router
 from backend.api.auth import auth_api_router, auth_html_router
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
@@ -25,7 +24,7 @@ app.add_middleware(AuthMiddleware)
 app.include_router(auth_html_router)
 app.include_router(html_router)
 
-# app.include_router(auth.router, prefix="/api")
+
 app.include_router(auth_api_router, prefix="/api")
 app.include_router(team.router, prefix="/api")
 app.include_router(task.router, prefix="/api")
