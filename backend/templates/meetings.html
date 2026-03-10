@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>My Meetings</h1>
+<a href="/meetings/create">+ Create New Meeting</a>
+
 {% if meetings %}
   <ul>
   {% for meeting in meetings %}
-    <li>{{ meeting.title }} — {{ meeting.start_time.strftime('%Y-%m-%d %H:%M') }}</li>
+    <li>
+      <strong>{{ meeting.title }}</strong><br>
+      {{ meeting.start_time.strftime('%Y-%m-%d %H:%M') }} – {{ meeting.end_time.strftime('%H:%M') }}
+    </li>
   {% endfor %}
   </ul>
 {% else %}
