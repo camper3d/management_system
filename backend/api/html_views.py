@@ -335,5 +335,23 @@ async def handle_evaluation(
         return RedirectResponse(url=f"/evaluations/create/{task_id}?error={str(e)[:100]}", status_code=303)
 
 
+@html_router.get("/profile/delete", response_class=HTMLResponse)
+async def delete_profile_confirm(request: Request):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    return request.app.state.templates.TemplateResponse("profile_delete.html", {
+        "request": request
+    })
 
+
+@html_router.post("/profile/delete")
+async def handle_delete_profile(request: Request, db: AsyncSession = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/login")
+    success = await delete_user(db, request.state.user.id)
+    if success:
+        response = RedirectResponse(url="/?success=Account+deleted", status_code=303)
+        response.delete_cookie("access_token")
+        return response
+    return RedirectResponse(url="/profile?error=Deletion+failed", status_code=303)
 
