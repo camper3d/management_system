@@ -134,6 +134,23 @@ async def get_team_members(db: AsyncSession, team_id: int) -> list[User]:
 
 
 async def join_team_by_code(db: AsyncSession, user_id: int, invite_code: str) -> bool:
+    """
+    Присоединяет пользователя к команде по инвайт-коду.
+
+    Args:
+        db (AsyncSession): Асинхронная сессия базы данных
+        user_id (int): ID пользователя, который хочет присоединиться к команде
+        invite_code (str): Инвайт-код команды
+
+    Returns:
+        bool: True если пользователь успешно присоединился к команде, False в противном случае
+
+    Notes:
+        - Пользователь не должен состоять ни в одной команде (team_id is None)
+        - Инвайт-код должен существовать в базе данных
+        - При успешном присоединении роль пользователя меняется на MEMBER
+        - Изменения автоматически сохраняются в базе данных (commit)
+    """
     user = await db.get(User, user_id)
     if not user or user.team_id is not None:
         return False

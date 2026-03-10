@@ -55,6 +55,27 @@ async def update_user_profile(
         full_name: str | None = None,
         email: str | None = None
 ) -> User | None:
+    """
+    Обновляет профиль пользователя.
+
+    Args:
+        db (AsyncSession): Асинхронная сессия базы данных
+        user_id (int): ID пользователя для обновления
+        full_name (str | None, optional): Новое полное имя пользователя. Defaults to None.
+        email (str | None, optional): Новый email пользователя. Defaults to None.
+
+    Returns:
+        User | None: Обновленный объект пользователя или None, если пользователь не найден
+
+    Raises:
+        ValueError: Если указанный email уже используется другим пользователем
+
+    Notes:
+        - Обновляются только переданные поля (full_name и/или email)
+        - При обновлении email проверяется уникальность в базе данных
+        - После обновления пользователь автоматически обновляется (refresh)
+        - Изменения сохраняются в базе данных (commit)
+    """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     if not user:
@@ -75,6 +96,21 @@ async def update_user_profile(
 
 
 async def delete_user(db: AsyncSession, user_id: int) -> bool:
+    """
+       Удаляет пользователя из базы данных.
+
+       Args:
+           db (AsyncSession): Асинхронная сессия базы данных
+           user_id (int): ID пользователя для удаления
+
+       Returns:
+           bool: True если пользователь успешно удален, False если пользователь не найден
+
+       Notes:
+           - При успешном удалении изменения автоматически сохраняются (commit)
+           - Функция не проверяет наличие связанных записей (задач, встреч и т.д.)
+           - Рекомендуется использовать каскадное удаление на уровне БД или предварительно очищать связи
+    """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     if not user:

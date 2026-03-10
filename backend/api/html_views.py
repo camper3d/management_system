@@ -181,6 +181,21 @@ async def tasks_view(request: Request, db: AsyncSession = Depends(get_db)):
 
 @html_router.get("/tasks/create", response_class=HTMLResponse)
 async def create_task_form(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+        Отображает форму создания новой задачи.
+
+        Args:
+            request (Request): Объект запроса FastAPI
+            db (AsyncSession): Асинхронная сессия базы данных
+
+        Returns:
+            HTMLResponse: HTML страница с формой создания задачи
+
+        Notes:
+            - Требуется авторизация пользователя
+            - Если пользователь в команде, загружается список членов команды для назначения
+            - Доступно только для авторизованных пользователей (роль не проверяется)
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     user = request.state.user
@@ -201,6 +216,29 @@ async def handle_create_task(
     assignee_id: int = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
+    """
+        Обрабатывает создание новой задачи.
+
+        Args:
+            request (Request): Объект запроса FastAPI
+            title (str): Заголовок задачи (обязательное поле)
+            description (str | None): Описание задачи (опционально)
+            deadline (str | None): Дедлайн в формате ISO строки (опционально)
+            assignee_id (int): ID пользователя, на которого назначается задача
+            db (AsyncSession): Асинхронная сессия базы данных
+
+        Returns:
+            RedirectResponse: Перенаправление на страницу задач с сообщением об успехе или ошибке
+
+        Raises:
+            303 Redirect: Перенаправление с параметрами success или error в URL
+
+        Notes:
+            - Требуется авторизация пользователя
+            - Только пользователи с ролями admin или manager могут создавать задачи
+            - Дата дедлайна конвертируется из ISO формата
+            - При ошибке возвращается на форму создания с сообщением об ошибке
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     user = request.state.user
@@ -223,6 +261,24 @@ async def update_task_status(
     status: str = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
+    """
+    Обновляет статус задачи.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        task_id (int): ID задачи для обновления
+        status (str): Новый статус задачи (должен быть допустимым значением)
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        RedirectResponse: Перенаправление на страницу задач с сообщением об успехе или ошибке
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Задача должна принадлежать той же команде, что и пользователь
+        - Только исполнитель задачи может менять статус на in_progress или done
+        - Статус обновляется через функцию update_task
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     user = request.state.user
@@ -239,6 +295,20 @@ async def update_task_status(
 
 @html_router.get("/join", response_class=HTMLResponse)
 async def join_team_form(request: Request):
+    """
+    Отображает форму для присоединения к команде по инвайт-коду.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+
+    Returns:
+        HTMLResponse: HTML страница с формой ввода инвайт-кода
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Пользователь не должен состоять ни в одной команде
+        - При уже существующей команде перенаправляет на dashboard с ошибкой
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     if request.state.user.team_id:
@@ -252,6 +322,23 @@ async def handle_join_team(
         invite_code: str = Form(...),
         db: AsyncSession = Depends(get_db)
 ):
+    """
+    Обрабатывает присоединение пользователя к команде по инвайт-коду.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        invite_code (str): Инвайт-код команды (очищается от пробелов)
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        RedirectResponse: Перенаправление на dashboard с сообщением об успехе или на форму с ошибкой
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Инвайт-код очищается от пробелов (strip)
+        - При успехе пользователь становится MEMBER команды
+        - При неудаче возвращается на форму с сообщением об ошибке
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
 
@@ -295,6 +382,21 @@ async def meetings_view(request: Request, db: AsyncSession = Depends(get_db)):
 
 @html_router.get("/meetings/create", response_class=HTMLResponse)
 async def create_meeting_form(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Отображает форму создания новой встречи.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        HTMLResponse: HTML страница с формой создания встречи
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Если пользователь в команде, загружается список членов команды для приглашения
+        - Доступно только для авторизованных пользователей
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     user = request.state.user
@@ -315,6 +417,29 @@ async def handle_create_meeting(
     participant_ids: List[str] = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
+    """
+    Обрабатывает создание новой встречи.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        title (str): Название встречи (обязательное поле)
+        start_time (str): Время начала в ISO формате (обязательное поле)
+        end_time (str): Время окончания в ISO формате (обязательное поле)
+        participant_ids (List[str]): Список ID участников (обязательное поле)
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        RedirectResponse: Перенаправление на страницу встреч с сообщением об успехе или ошибке
+
+    Raises:
+        303 Redirect: Перенаправление с параметрами success или error в URL
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Даты конвертируются из ISO формата (поддерживается Z для UTC)
+        - ID участников преобразуются из строк в целые числа
+        - При ошибке возвращается на форму создания с сообщением об ошибке
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     user = request.state.user
@@ -336,6 +461,23 @@ async def handle_create_meeting(
 
 @html_router.get("/evaluations/create/{task_id}", response_class=HTMLResponse)
 async def evaluation_form(request: Request, task_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Отображает форму оценки выполненной задачи.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        task_id (int): ID задачи для оценки
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        HTMLResponse: HTML страница с формой оценки задачи
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Задача должна иметь статус "done" (выполнена)
+        - Только менеджеры и администраторы могут оценивать задачи
+        - При невыполненной задаче перенаправляет на список задач с ошибкой
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     task = await get_task_by_id(db, task_id)
@@ -353,6 +495,23 @@ async def handle_evaluation(
     score: int = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
+    """
+    Обрабатывает создание оценки для выполненной задачи.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        task_id (int): ID оцениваемой задачи
+        score (int): Оценка за выполненную задачу (обязательное поле)
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        RedirectResponse: Перенаправление на страницу задач с сообщением об успехе или ошибке
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Создает оценку через функцию create_evaluation
+        - При ошибке возвращает на форму с сообщением (обрезанным до 100 символов)
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     try:
@@ -365,6 +524,19 @@ async def handle_evaluation(
 
 @html_router.get("/profile/edit", response_class=HTMLResponse)
 async def edit_profile_form(request: Request):
+    """
+    Отображает форму редактирования профиля пользователя.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+
+    Returns:
+        HTMLResponse: HTML страница с формой редактирования профиля
+
+    Notes:
+        - Требуется авторизация пользователя
+        - В форму передаются текущие данные пользователя для предзаполнения
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     return request.app.state.templates.TemplateResponse("profile_edit.html", {
@@ -380,6 +552,27 @@ async def handle_edit_profile(
         email: str = Form(None),
         db: AsyncSession = Depends(get_db)
 ):
+    """
+    Обрабатывает обновление профиля пользователя.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        full_name (str | None): Новое полное имя (опционально)
+        email (str | None): Новый email (опционально)
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        RedirectResponse: Перенаправление на страницу профиля с сообщением об успехе или ошибке
+
+    Raises:
+        ValueError: Если email уже используется другим пользователем
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Обновляются только переданные поля
+        - Проверяется уникальность email при обновлении
+        - Использует функцию update_user_profile для бизнес-логики
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
 
@@ -395,6 +588,21 @@ async def handle_edit_profile(
 
 @html_router.get("/profile/delete", response_class=HTMLResponse)
 async def delete_profile_confirm(request: Request):
+    """
+    Отображает страницу подтверждения удаления профиля.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+
+    Returns:
+        HTMLResponse: HTML страница с предупреждением о удалении аккаунта
+
+    Notes:
+        - Требуется авторизация пользователя
+        - Страница запрашивает подтверждение перед удалением
+        - Содержит предупреждение о необратимости действия
+
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     return request.app.state.templates.TemplateResponse("profile_delete.html", {
@@ -404,6 +612,22 @@ async def delete_profile_confirm(request: Request):
 
 @html_router.post("/profile/delete")
 async def handle_delete_profile(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Обрабатывает удаление профиля пользователя.
+
+    Args:
+        request (Request): Объект запроса FastAPI
+        db (AsyncSession): Асинхронная сессия базы данных
+
+    Returns:
+        RedirectResponse: Перенаправление на главную страницу с сообщением об успехе или на профиль с ошибкой
+
+    Notes:
+        - Требуется авторизация пользователя
+        - При успешном удалении удаляется cookie access_token
+        - Использует функцию delete_user для удаления из БД
+        - Действие необратимо - все данные пользователя удаляются
+    """
     if not request.state.user:
         return RedirectResponse(url="/login")
     success = await delete_user(db, request.state.user.id)
