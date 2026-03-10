@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-
 from backend.models import User
 from backend.models.base import Base
+import secrets
 
 
 class Team(Base):
@@ -10,6 +10,7 @@ class Team(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
+    invite_code = Column(String, unique=True, nullable=False, default=lambda: secrets.token_urlsafe(8))
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     admin = relationship("User", foreign_keys=[admin_id])
