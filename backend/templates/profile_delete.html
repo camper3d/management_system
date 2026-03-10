@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete Account</h1>
+<p> This action is irreversible. All your data will be permanently deleted.</p>
+<form method="post" onsubmit="return confirm('Are you sure?');">
+  <button type="submit" style="background: #dc3545; color: white;">Delete My Account</button>
+  <a href="/dashboard" style="margin-left: 10px;">Cancel</a>
+</form>
+{% endblock %}
