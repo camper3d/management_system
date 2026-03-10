@@ -47,3 +47,13 @@ async def create_user(db: AsyncSession, user_create: UserCreate) -> User:
     await db.commit()
     await db.refresh(db_user)
     return db_user
+
+
+async def delete_user(db: AsyncSession, user_id: int) -> bool:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        return False
+    await db.delete(user)
+    await db.commit()
+    return True
