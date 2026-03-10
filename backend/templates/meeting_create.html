@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create New Meeting</h1>
+<form method="post">
+  <label>Title:<br>
+    <input type="text" name="title" required style="width: 100%; padding: 6px;">
+  </label><br><br>
+
+  <label>Start time:<br>
+    <input type="datetime-local" name="start_time" required style="padding: 6px;">
+  </label><br><br>
+
+  <label>End time:<br>
+    <input type="datetime-local" name="end_time" required style="padding: 6px;">
+  </label><br><br>
+
+  <label>Participants:<br>
+    {% for member in team_members %}
+      <label style="display: block; margin: 4px 0;">
+        <input type="checkbox" name="participant_ids" value="{{ member.id }}"
+               {% if member.id == user.id %}checked{% endif %}>
+        {{ member.full_name or member.email }}
+      </label>
+    {% endfor %}
+  </label><br>
+
+  <button type="submit" style="padding: 8px 16px;">Create Meeting</button>
+  <a href="/meetings" style="margin-left: 10px;">Cancel</a>
+</form>
+{% endblock %}
