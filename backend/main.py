@@ -21,7 +21,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
 app.add_middleware(AuthMiddleware)
-app.include_router(auth_html_router)
+app.include_router(auth_html_router, prefix="/auth")
 app.include_router(html_router)
 
 
