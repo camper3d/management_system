@@ -1,11 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from backend.models.evaluation import Evaluation
 from backend.models.task import Task, TaskStatus
 from backend.models.user import User
-from backend.schemas.evaluation import EvaluationCreate
+from backend.schemas.evaluation import EvaluationCreate, AverageRatingResponse
 
 
 async def create_evaluation(
@@ -93,7 +93,7 @@ async def get_user_evaluations(
 
 async def get_average_rating(
     db: AsyncSession, user_id: int, team_id: int, days: int = 30
-) -> dict:
+) -> AverageRatingResponse:
     """
     Рассчитать средний рейтинг пользователя за последние N дней.
 
@@ -109,7 +109,7 @@ async def get_average_rating(
             - "total_evaluations" (int): количество оценок за указанный период.
     """
 
-    since = datetime.utcnow() - timedelta(days=days)
+    since = datetime.now(timezone.utc) - timedelta(days=days)
     result = await db.execute(
         select(func.avg(Evaluation.score), func.count(Evaluation.id))
         .join(Task, Evaluation.task_id == Task.id)
@@ -122,7 +122,7 @@ async def get_average_rating(
         )
     )
     avg, count = result.first()
-    return {
-        "average_score": float(avg) if avg else 0.0,
-        "total_evaluations": count or 0,
-    }
+    return AverageRatingResponse(
+        average_score=float(avg) if avg is not None else 0.0,
+        total_evaluations=count or 0
+    )
