@@ -104,9 +104,9 @@ async def get_average_rating(
         days (int, optional): Количество дней для анализа (по умолчанию 30).
 
     Returns:
-        dict: Словарь с ключами:
-            - "average_score" (float): средний балл.
-            - "total_evaluations" (int): количество оценок за указанный период.
+        AverageRatingResponse: Объект со следующими полями:
+        - average_score (float): средний балл (0.0 если оценок нет).
+        - total_evaluations (int): количество оценок за указанный период.
     """
 
     since = datetime.now(timezone.utc) - timedelta(days=days)
