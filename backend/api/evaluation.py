@@ -84,14 +84,8 @@ async def get_my_average_rating(
 
     Returns:
         AverageRatingResponse: Средний балл и количество оценок.
-                               Если пользователь не состоит в команде, возвращается
-                               {"average_score": 0.0, "total_evaluations": 0}.
     """
 
-    if current_user.team_id is None:
-        return {"average_score": 0.0, "total_evaluations": 0}
-
-    stats = await get_average_rating(
+    return await get_average_rating(
         db, current_user.id, current_user.team_id, days=days
     )
-    return stats
